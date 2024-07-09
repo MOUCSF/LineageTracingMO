@@ -1,0 +1,128 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red251\green2\blue7;}
+{\*\expandedcolortbl;;\cssrgb\c100000\c14913\c0;}
+\margl1440\margr1440\vieww25120\viewh21040\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # fastp install\
+(base) masahirookada@LinWamg-iMac-Pro ~ % conda install -c bioconda fastp\
+\
+cd /Users/masahirookada/Desktop/DAISYdata1\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 #!/bin/bash\
+\
+# sample name copy paste\
+samples=("SB28_DAISY_DAY0_sub1_A1_S120_L007" "SB28_DAISY_DAY0_sub2_A3_S122_L007" "SB28_DAISY_DAY13_sub1_A2_S121_L007" "SB28_DAISY_DAY13_sub2_A4_S123_L007")\
+\
+# fast\
+for sample in "$\{samples[@]\}"; do\
+  echo "Processing $sample"\
+\
+  # input\
+  R1="$\{sample\}_R1_001.fastq.gz"\
+  R2="$\{sample\}_R2_001.fastq.gz"\
+\
+  # output\
+  unmerged_R1="$\{sample\}_unmerged_R1.fastq.gz"\
+  unmerged_R2="$\{sample\}_unmerged_R2.fastq.gz"\
+  merged="$\{sample\}_merged.fastq.gz"\
+\
+  # perform fastp\
+  fastp -i "$R1" -I "$R2" -o "$unmerged_R1" -O "$unmerged_R2" --merge --merged_out "$merged"  -q 20 -u 30 -n 5 -e 20\
+done\
+\
+echo "All samples processed."\cf0 \
+\
+#parameter, -q 20, quality <20, -u 30, remove q 20 is over 30%, -n 5 remove NNNNN, -e 20 average quality is higher than 20.\
+\
+#SeqKit\
+https://bioinf.shenwei.me/seqkit/download/\
+[macOS\uc0\u12288 64-bit] download.\
+export PATH=/Users/masahirookada/seqkit:$PATH\
+\
+cd /Users/masahirookada/Desktop/DAISYdata1\
+\
+\
+\
+#seqkit calculate read length(raw sequence data)\
+\cf2 seqkit watch --fields ReadLen /Users/masahirookada/Desktop/DAISYdata1/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged.fastq -O DAISY0.png\
+seqkit watch --fields ReadLen /Users/masahirookada/Desktop/DAISYdata1/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged.fastq -O DAISY13.png\cf0 \
+\
+#fastq2fasta\
+\cf2 seqkit fq2fa /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged.fastq.gz -o /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged.fasta\
+\
+seqkit fq2fa /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged.fastq.gz -o /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged.fasta\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+#Prepare TAGTTACGCCAAGCTTGAATTC.txt (TextEdit, only copy paste, TAGTTACGCCAAGCTTGAATTC, save as .txt)\uc0\u12289 -P, direction, -m 2, mismatch 2\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 seqkit grep -P -f /Users/masahirookada/Desktop/DAISYdata1/TAGTTACGCCAAGCTTGAATTC.txt -m 2 -j 12 /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged.fastq.gz -o /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.fastq.gz\
+\
+seqkit grep -P -f /Users/masahirookada/Desktop/DAISYdata1/TAGTTACGCCAAGCTTGAATTC.txt -m 2 -j 12 /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged.fastq.gz -o /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.fastq.gz\cf0 \
+\
+#seqkit calculate read length (after DAISY selection)\
+seqkit watch --fields ReadLen /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.fastq.gz -O DAISY0_sub1.png\
+seqkit watch --fields ReadLen /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.fastq.gz -O DAISY13_sub1.png\
+\
+\
+#Prepare 10xbarcode from SeuratObject. 10xbarcode is from R SeuratObject, \cf2 tenxbarcode <- colnames(DAISY13) %>% sub("-1$", "", .)\cf0 \
+\
+#seqkit fq2fa convert to .fasta\
+\cf2 seqkit fq2fa /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.fastq.gz -o /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta\
+\
+seqkit fq2fa /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.fastq.gz -o /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+#awk selects fasta with 10xbarcode sequence.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 awk '\
+NR==FNR \{patterns[$0]; next\}\
+\{\
+  header = $0\
+  getline seq\
+  for (pattern in patterns) \{\
+    if (index(seq, pattern) > 0) \{\
+      print header\
+      print seq\
+      break\
+    \}\
+  \}\
+\}\
+' /Users/masahirookada/Desktop/DAISYdata1/DAISY0.txt /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta > /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 awk '\
+NR==FNR \{patterns[$0]; next\}\
+\{\
+  header = $0\
+  getline seq\
+  for (pattern in patterns) \{\
+    if (index(seq, pattern) > 0) \{\
+      print header\
+      print seq\
+      break\
+    \}\
+  \}\
+\}\
+' /Users/masahirookada/Desktop/DAISYdata1/DAISY13.txt /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta > /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+#seqkit fx2tab convert to .txt\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 seqkit fx2tab /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta > /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt  \
+\
+seqkit fx2tab /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.fasta >  /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt  \cf0 \
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}
