@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# サンプル名のリストを定義
+samples=("SB28_DAISY_DAY0_sub1_A1_S120_L007" "SB28_DAISY_DAY0_sub2_A3_S122_L007" "SB28_DAISY_DAY13_sub1_A2_S121_L007" "SB28_DAISY_DAY13_sub2_A4_S123_L007")
+
+# 各サンプルに対してfastpを実行
+for sample in "${samples[@]}"; do
+  echo "Processing $sample"
+
+  # 入力ファイルの指定
+  R1="${sample}_R1_001.fastq.gz"
+  R2="${sample}_R2_001.fastq.gz"
+
+  # 出力ファイルの指定
+  unmerged_R1="${sample}_unmerged_R1.fastq.gz"
+  unmerged_R2="${sample}_unmerged_R2.fastq.gz"
+  merged="${sample}_merged.fastq.gz"
+
+  # fastpの実行
+  fastp -i "$R1" -I "$R2" -o "$unmerged_R1" -O "$unmerged_R2" --merge --merged_out "$merged"  -q 20 -u 30 -n 5 -e 20
+done
+
+echo "All samples processed."
+
+
+
+
+cd /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3
+
+samples=("SB28_DAISY_DAY0_sub1_A1_S120_L007" "SB28_DAISY_DAY0_sub2_A3_S122_L007" "SB28_DAISY_DAY13_sub1_A2_S121_L007" "SB28_DAISY_DAY13_sub2_A4_S123_L007")
+
+for sample in "${samples[@]}"; do
+  echo "Processing $sample"
+  R1="${sample}_R1_001.fastq.gz"
+  R2="${sample}_R2_001.fastq.gz"
+  unmerged_R1="${sample}_unmerged_R1.fastq.gz"
+  unmerged_R2="${sample}_unmerged_R2.fastq.gz"
+  merged="${sample}_merged.fastq.gz"
+  fastp -i "$R1" -I "$R2" -o "$unmerged_R1" -O "$unmerged_R2" --merge --merged_out "$merged"  -q 20 -u 30 -n 5 -e 20
+done
+
+echo "All samples processed."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# fastpを使用してペアエンドリードをマージ
+fastp -i sample_R1.fastq -I sample_R2.fastq -o merged_R1.fastq -O merged_R2.fastq --merge --merged_out merged.fastq -q 20 -u 30 -n 5 -e 20
+
+オプションの説明
+-i または --in1:
+説明: ペアエンドリードの1つ目のFASTQファイル（通常はforwardリード）を指定します。
+例: -i sample_R1.fastq
+-I または --in2:
+説明: ペアエンドリードの2つ目のFASTQファイル（通常はreverseリード）を指定します。
+例: -I sample_R2.fastq
+-o または --out1:
+説明: マージ後の残った1つ目のFASTQファイルを指定します。これは、マージできなかったforwardリードが出力されるファイルです。
+例: -o merged_R1.fastq
+-O または --out2:
+説明: マージ後の残った2つ目のFASTQファイルを指定します。これは、マージできなかったreverseリードが出力されるファイルです。
+例: -O merged_R2.fastq
+--merged_out:
+説明: マージされたリードの出力ファイルを指定します。これは、ペアエンドリードが重なり合って1つにマージされたリードが出力されるファイルです。
+例: --merged_out merged.fastq
+-q 20: Phred品質スコア20未満のベースを低品質と見なします。
+-u 30: 30％を超える低品質ベースを持つリードを除去します。
+-n 5: 5個を超えるNベースを持つリードを除去します。
+-e 20: 平均Phred品質スコアが20未満のリードを除去します。
+
+
+
+
+
+
+
+
+スクリプトの説明
+サンプル名のリストの定義:
+samples=("sample1" "sample2" "sample3" "sample4") のように、サンプル名のリストを定義します。必要に応じてサンプル名を追加します。
+ループの設定:${samples[@]}はその配列内のすべての要素を表します
+for sample in "${samples[@]}"; do で各サンプルに対してループを回します。
+入力ファイルの指定:
+各サンプルのペアエンドFASTQファイルの名前を定義します。例えば、sample1の場合、sample1_R1_001.fastq.gz と sample1_R2_001.fastq.gz となります。
+出力ファイルの指定:
+マージされなかったリードとマージされたリードの出力ファイル名を定義します。
+fastpの実行:
+各サンプルについてfastpを実行し、入力ファイルと出力ファイルを指定します。
+終了メッセージ:
+すべてのサンプルの処理が完了したことを示すメッセージを表示します。
+
+実行方法
+上記のスクリプトをファイルに保存します。例えば、merge_samples.shという名前で保存します。
+スクリプトに実行権限を付与します。
+bash
+chmod +x merge_samples.sh
+スクリプトを実行します。
+bash
+./merge_samples.sh
+このスクリプトを実行すると、各サンプルペアに対してfastpが実行され、マージされたリードが出力されます。
+
+
+
+

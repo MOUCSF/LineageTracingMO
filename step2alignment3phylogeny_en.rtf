@@ -1,0 +1,790 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red251\green2\blue7;\red253\green128\blue8;\red0\green0\blue255;
+\red0\green0\blue0;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c100000\c14913\c0;\cssrgb\c100000\c57637\c0;\cssrgb\c1680\c19835\c100000;
+\csgray\c0;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww31300\viewh21240\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 #Collect 10xbarcode, UMI, staticBC, mutateBC from each line. \uc0\u8594 Normalize by sorted UMI. \u8594 Count by sorted staticBC and mutateBC. \u8594 Choose best plausible sequence. \u8594 Alignment. \u8594  Calculate neighbor joining (0 vs ATGC/indel) or maximum likelihood (ATGC vs ATGC/indel).\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 #extract 10x barcode\
+awk '\
+NR==FNR \{barcodes[NR]=$0; next\}\
+\{\
+  found = 0\
+  for (i in barcodes) \{\
+    if (index($0, barcodes[i]) > 0) \{\
+      print barcodes[i]\
+      found = 1\
+      break\
+    \}\
+  \}\
+  if (!found) print "NA"\
+\}\
+' /Users/masahirookada/Desktop/DAISYdata1/DAISY0.txt /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt > tenx0.txt\cf0 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf3 #file path version\
+input="/Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt"\
+daisy="/Users/masahirookada/Desktop/DAISYdata1/DAISY13.txt"\
+\
+#extract 10x barcode\
+awk '\
+NR==FNR \{barcodes[NR]=$0; next\}\
+\{\
+  found = 0\
+  for (i in barcodes) \{\
+    if (index($0, barcodes[i]) > 0) \{\
+      print barcodes[i]\
+      found = 1\
+      break\
+    \}\
+  \}\
+  if (!found) print "NA"\
+\}\
+' "$daisy" "$input" > tenx13.txt\cf0 \
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 #Extract UMI\
+awk '\
+NR==FNR \{\
+    barcodes[NR] = $0\
+    next\
+\}\
+\{\
+    found = 0\
+    for (i in barcodes) \{\
+        pos = index($0, barcodes[i])\
+        if (pos > 0) \{\
+            print substr($0, pos + 16, 12)\
+            found = 1\
+            break\
+        \}\
+    \}\
+    if (!found) print "NA"\
+\}\
+' /Users/masahirookada/Desktop/DAISYdata1/DAISY0.txt /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt > umi0.txt\cf0 \
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf3 #file path version\
+input="/Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt"\
+daisy="/Users/masahirookada/Desktop/DAISYdata1/DAISY13.txt"\cf0 \
+\
+\cf3 #Extract UMI\cf0 \
+\cf3 awk '\
+NR==FNR \{\
+    barcodes[NR] = $0\
+    next\
+\}\
+\{\
+    found = 0\
+    for (i in barcodes) \{\
+        pos = index($0, barcodes[i])\
+        if (pos > 0) \{\
+            print substr($0, pos + 16, 12)\
+            found = 1\
+            break\
+        \}\
+    \}\
+    if (!found) print "NA"\
+\}\
+' "$daisy" "$input" > umi13.txt\cf0 \
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 #Extract between AGCTTGAATTC and TTTGCT\
+\pard\pardeftab720\partightenfactor0
+\cf2 awk -F"\\t" '\
+\{\
+    split($0, fields, "\\t")\
+    \
+    if (length(fields) < 2) \{\
+        print "NA"\
+        next\
+    \}\
+\
+    if ($2 ~ /AGCTTGAATTC.*TTTGCT/) \{  \
+\
+        start_idx = index($2, "AGCTTGAATTC") + 11  \
+        end_idx = index($2, "TTTGCT") - 1         \
+        if (start_idx <= end_idx) \{\
+            extracted_seq = substr($2, start_idx, end_idx - start_idx + 1)\
+            print extracted_seq\
+        \} else \{\
+            print "NA"\
+        \}\
+    \} else \{\
+        print "NA"\
+    \}\
+\}' /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt > static0.txt\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf3 #file path version\
+input="/Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt"\
+\
+\pard\pardeftab720\partightenfactor0
+\cf3 awk -F"\\t" '\
+\{\
+\
+    split($0, fields, "\\t")\
+    \
+    if (length(fields) < 2) \{\
+        print "NA"\
+        next\
+    \}\
+\
+    if ($2 ~ /AGCTTGAATTC.*TTTGCT/) \{  \
+\
+        start_idx = index($2, "AGCTTGAATTC") + 11 \
+        end_idx = index($2, "TTTGCT") - 1        \
+        if (start_idx <= end_idx) \{\
+            extracted_seq = substr($2, start_idx, end_idx - start_idx + 1)\
+            print extracted_seq\
+        \} else \{\
+            print "NA"\
+        \}\
+    \} else \{\
+        print "NA"\
+    \}\
+\}' "$input" > static13.txt\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+#count variation\
+grep -v '^NA$' static.txt | sort | uniq -c | wc -l\
+grep -v '^NA$' static.txt | sort -u | wc -l\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 #Extract TTTGCT- (mutable)\
+awk -F"\\t" '\
+\{\
+\
+    split($0, fields, "\\t")\
+    \
+    if (length(fields) < 2) \{\
+        print "NA"\
+        next\
+    \}\
+    \
+    if ($2 ~ /TTTGCT(.*)/) \{\
+        match($2, /TTTGCT.*/) \
+        print substr($2, RSTART, RLENGTH) \
+    \} else \{\
+        print "NA"\
+    \}\
+\}' /Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY0_sub1_A1_S120_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt > mutate0.txt\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf3 # file path version\
+input="/Users/masahirookada/Desktop/DAISYdata1/240528_LH00132_0314_B22MWC5LT3/Common_SB28_DAISY_DAY13_sub1_A2_S121_L007_merged_TAGTTACGCCAAGCTTGAATTC.txt"\
+\
+awk -F"\\t" '\
+\{\
+\
+    split($0, fields, "\\t")\
+    \
+    if (length(fields) < 2) \{\
+        print "NA"\
+        next\
+    \}\
+    \
+    if ($2 ~ /TTTGCT(.*)/) \{\
+        match($2, /TTTGCT.*/) \
+        print substr($2, RSTART, RLENGTH)  \
+    \} else \{\
+        print "NA"\
+    \}\
+\}' "$input" > mutate13.txt\cf0 \
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 # Integrate 10x, UMI, staticBC, mutableBC\
+echo -e "tenx\\tumi\\tstatic\\tmutate" > merge0.txt\
+paste tenx0.txt umi0.txt static0.txt mutate0.txt | awk '!/NA/' >> merge0.txt\cf0 \
+\cf2 \
+echo -e "tenx\\tumi\\tstatic\\tmutate" > merge13.txt\
+paste tenx13.txt umi13.txt static13.txt mutate13.txt | awk '!/NA/' >> merge13.txt\cf0 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+#Sorting by UMI\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python sortumi_rapidfuzz.py merge0.txt sorted0.txt\
+python /Users/masahirookada/Desktop/DAISYprocess/2-1sortumi_rapidfuzz.py merge13.txt sorted13.txt\cf0 \
+\
+#Save as 2-1sortumi_rapidfuzz.py\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf4 import pandas as pd\
+from rapidfuzz import process, fuzz\
+import sys\
+\
+\
+input_file = sys.argv[1]\
+output_file = sys.argv[2]\
+\
+\
+df = pd.read_csv(input_file, sep='\\t')\
+\
+def find_similar_groups(umi_list):\
+    groups = []\
+    for umi in umi_list:\
+        found = False\
+        for group in groups:\
+            if fuzz.ratio(umi, group[0]) >= 80:  # 0.8 * 100\
+                group.append(umi)\
+                found = True\
+                break\
+        if not found:\
+            groups.append([umi])\
+    return groups\
+\
+results = []\
+\
+for tenx, group in df.groupby('tenx'):\
+    umi_list = group['umi'].tolist()\
+    static = group['static'].tolist()\
+    mutate = group['mutate'].tolist()\
+    \
+    similar_groups = find_similar_groups(umi_list)\
+    \
+    for similar_group in similar_groups:\
+        count = len(similar_group)\
+        representative_umi = similar_group[0]\
+        indices = [umi_list.index(umi) for umi in similar_group]\
+        \
+        results.append(\{\
+            'tenx': tenx,\
+            'umi': representative_umi,\
+            'static': static[indices[0]],\
+            'mutate': mutate[indices[0]],\
+            'overlapumi': count\
+        \})\
+\
+result_df = pd.DataFrame(results)\
+\
+result_df.to_csv(output_file, sep='\\t', index=False)\cf0 \
+\
+\
+#select UMI(overlapumi)>1\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf2 \CocoaLigature0 awk '$NF > 1' sorted0.txt > removed0.txt\
+awk '$NF > 1' sorted13.txt > removed13.txt
+\fs22 \cf5 \
+\pard\pardeftab720\partightenfactor0
+
+\fs24 \cf0 \CocoaLigature1 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 #>1 or >2 or >x is adjusted by counting BC number as below\cf3 \
+\pard\pardeftab720\partightenfactor0
+\cf3 import pandas as pd\
+\
+df = pd.read_csv('test.txt', delimiter='\\t')  \
+\
+unique_counts = df.nunique()\
+\
+print(unique_counts)\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+#Sorting by staticBC\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/2-2sortstatic_rapidfuzz.py removed0.txt resorted0.txt\
+python /Users/masahirookada/Desktop/DAISYprocess/2-2sortstatic_rapidfuzz.py removed13.txt resorted13.txt\cf0 \
+\
+#Save as 2-2sortstatic_rapidfuzz.py\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf4 import pandas as pd\
+from rapidfuzz import process, fuzz\
+import sys\
+\
+\
+input_file = sys.argv[1]\
+output_file = sys.argv[2]\
+\
+\
+df = pd.read_csv(input_file, sep='\\t')\
+\
+\
+def find_similar_groups(static_list, mutate_list):\
+    groups = []\
+    for i, static in enumerate(static_list):\
+        found = False\
+        for group in groups:\
+            for j, group_static in enumerate(group['static']):\
+                if fuzz.ratio(static, group_static) >= 90:  # 0.9 * 100\
+                    if fuzz.ratio(mutate_list[i], group['mutate'][j]) >= 90:\
+                        group['static'].append(static)\
+                        group['mutate'].append(mutate_list[i])\
+                        found = True\
+                        break\
+            if found:\
+                break\
+        if not found:\
+            groups.append(\{'static': [static], 'mutate': [mutate_list[i]]\})\
+    return groups\
+\
+\
+results = []\
+\
+\
+for tenx, group in df.groupby('tenx'):\
+    static_list = group['static'].tolist()\
+    mutate_list = group['mutate'].tolist()\
+    \
+\
+    similar_groups = find_similar_groups(static_list, mutate_list)\
+    \
+\
+    for similar_group in similar_groups:\
+        count = len(similar_group['static'])\
+        representative_static = similar_group['static'][0]\
+        \
+        overlapmutate = sum(1 for _ in similar_group['mutate'])\
+        \
+        results.append(\{\
+            'tenx': tenx,\
+            'static': representative_static,\
+            'mutate': similar_group['mutate'][0],\
+            'overlapmutate': overlapmutate\
+        \})\
+\
+result_df = pd.DataFrame(results)\
+\
+result_df.to_csv(output_file, sep='\\t', index=False)\cf0 \
+\
+#Choose MAX count sequence as representative of single cell\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/2-3maxselect.py resorted0.txt max0.txt\cf0 \
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/2-3maxselect.py resorted13.txt max13.txt\cf0 \
+#Save as 2-3maxselect.py\
+\
+\pard\pardeftab720\partightenfactor0
+\cf4 import sys\
+import pandas as pd\
+\
+def main(input_file, output_file):\
+\
+    df = pd.read_csv(input_file, sep='\\t')\
+\
+    result = df.loc[df.groupby('tenx')['overlapmutate'].idxmax()]\
+\
+    result.to_csv(output_file, sep='\\t', index=False)\
+\
+if __name__ == "__main__":\
+\
+    if len(sys.argv) != 3:\
+        print("Usage: python maxselect.py input.txt output.txt")\
+        sys.exit(1)\
+\
+    input_file = sys.argv[1]\
+    output_file = sys.argv[2]\
+\
+    main(input_file, output_file)\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+#Alignment of mutateBC vs original sequence 2-4alignmentATGCindel.py for maximum likelihood (output, ATGC / indel)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/2-4alignmentATGCindel.py max13.txt alignmentATGC13.txt\cf0 \
+\
+\
+#Save as 2-4alignmentATGCindel.py\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf4 from Bio.Align import PairwiseAligner\
+import pandas as pd\
+import sys\
+\
+def create_state_vector(alignment, original_seq_length):\
+    aligned_original_seq = alignment[0]\
+    aligned_mutate_seq = alignment[1]\
+    state_vector = []\
+    for o, a in zip(aligned_original_seq, aligned_mutate_seq):\
+        if o == a:\
+            state_vector.append(o)  \
+        elif o == '-' or a == '-':\
+            state_vector.append('-')\
+        else:\
+            state_vector.append(a)\
+    \
+    # Ensure the state vector is the same length as the original sequence\
+    # Fill with '0' if the state vector is shorter\
+    if len(state_vector) < original_seq_length:\
+        state_vector += ['0'] * (original_seq_length - len(state_vector))\
+    # Trim if it's longer (this case shouldn't normally happen in global alignment)\
+    elif len(state_vector) > original_seq_length:\
+        state_vector = state_vector[:original_seq_length]\
+    \
+    return state_vector\
+\
+def main(input_file, output_file):\
+    original_seq = "TTTGCTACCTATTACTAGGACAAGTGGAGGCGTTGAGAATGTCTCGGAATGTGCCGGAAATTTGCATCGTATTACTAGGACAATTCGAGTCCTTGAGGAAGTCTCTCGATGTGCCGGAAA"\
+    original_seq_length = len(original_seq)\
+    \
+    data = []\
+\
+    with open(input_file, 'r') as file:\
+        header = file.readline().strip().split()\
+        for line in file:\
+            data.append(line.strip().split())\
+\
+    output_data = []\
+\
+    aligner = PairwiseAligner()\
+    aligner.mode = 'global'\
+    aligner.match_score = 2\
+    aligner.mismatch_score = -1\
+    aligner.open_gap_score = -0.5\
+    aligner.extend_gap_score = -0.1\
+\
+    for row in data:\
+        tenx = row[0]\
+        static = row[1]\
+        mutate_seq = row[2]\
+\
+        # Align mutate_seq with original_seq using PairwiseAligner\
+        alignments = aligner.align(original_seq, mutate_seq)\
+\
+        # Choose the best alignment (first one in the list)\
+        best_alignment = alignments[0]\
+\
+        # Create the state vector based on the best alignment\
+        state_vector = create_state_vector(best_alignment, original_seq_length)\
+\
+        # Add row to output data\
+        output_data.append([tenx, static] + state_vector)\
+\
+    # Create DataFrame for output\
+    columns = ['tenx', 'static'] + [f'V\{i+1\}' for i in range(original_seq_length)]\
+    output_df = pd.DataFrame(output_data, columns=columns)\
+\
+    output_df.to_csv(output_file, index=False, sep=',')\
+\
+    print(f"Output written to \{output_file\}")\
+\
+if __name__ == "__main__":\
+    if len(sys.argv) != 3:\
+        print("Usage: python daisyalignment.py input.txt output.txt")\
+        sys.exit(1)\
+    \
+    input_file = sys.argv[1]\
+    output_file = sys.argv[2]\
+    \
+    main(input_file, output_file)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+#Alignment of mutateBC vs original sequence 2-4alignmentATGCindel.py for neiborjoining (Output 0 or mutation/indel)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/2-4alignment0orATGCindel.py max13.txt alignment13.txt\cf0 \
+\
+\
+#Save as 2-4alignment0orATGCindel.py\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf4 from Bio.Align import PairwiseAligner\
+import pandas as pd\
+import sys\
+\
+def create_state_vector(alignment, original_seq_length):\
+    aligned_original_seq = alignment[0]\
+    aligned_mutate_seq = alignment[1]\
+    state_vector = []\
+    for o, a in zip(aligned_original_seq, aligned_mutate_seq):\
+        if o == a:\
+            state_vector.append('0')\
+        elif o == '-' or a == '-':\
+            state_vector.append('-')\
+        else:\
+            state_vector.append(a)\
+    \
+    # Ensure the state vector is the same length as the original sequence\
+    # Fill with '0' if the state vector is shorter\
+    if len(state_vector) < original_seq_length:\
+        state_vector += ['0'] * (original_seq_length - len(state_vector))\
+    # Trim if it's longer (this case shouldn't normally happen in global alignment)\
+    elif len(state_vector) > original_seq_length:\
+        state_vector = state_vector[:original_seq_length]\
+    \
+    return state_vector\
+\
+def main(input_file, output_file):\
+    # original sequence\
+    original_seq = "TTTGCTACCTATTACTAGGACAAGTGGAGGCGTTGAGAATGTCTCGGAATGTGCCGGAAATTTGCATCGTATTACTAGGACAATTCGAGTCCTTGAGGAAGTCTCTCGATGTGCCGGAAA"\
+    original_seq_length = len(original_seq)\
+    \
+    # input file reading\
+    data = []\
+\
+    with open(input_file, 'r') as file:\
+        header = file.readline().strip().split()\
+        for line in file:\
+            data.append(line.strip().split())\
+\
+    # Process each mutate sequence and generate the state matrix\
+    output_data = []\
+\
+    aligner = PairwiseAligner()\
+    aligner.mode = 'global'\
+    aligner.match_score = 2\
+    aligner.mismatch_score = -1\
+    aligner.open_gap_score = -0.5\
+    aligner.extend_gap_score = -0.1\
+\
+    for row in data:\
+        tenx = row[0]\
+        static = row[1]\
+        mutate_seq = row[2]\
+\
+        # Align mutate_seq with original_seq using PairwiseAligner\
+        alignments = aligner.align(original_seq, mutate_seq)\
+\
+        # Choose the best alignment (first one in the list)\
+        best_alignment = alignments[0]\
+\
+        # Create the state vector based on the best alignment\
+        state_vector = create_state_vector(best_alignment, original_seq_length)\
+\
+        # Add row to output data\
+        output_data.append([tenx, static] + state_vector)\
+\
+    # Create DataFrame for output\
+    columns = ['tenx', 'static'] + [f'V\{i+1\}' for i in range(original_seq_length)]\
+    output_df = pd.DataFrame(output_data, columns=columns)\
+\
+    # Write output to file\
+    output_df.to_csv(output_file, index=False, sep=',')\
+\
+    print(f"Output written to \{output_file\}")\
+\
+if __name__ == "__main__":\
+    if len(sys.argv) != 3:\
+        print("Usage: python daisyalignment.py input.txt output.txt")\
+        sys.exit(1)\
+    \
+    input_file = sys.argv[1]\
+    output_file = sys.argv[2]\
+    \
+    main(input_file, output_file)\cf0 \
+\
+#Sort by staticBC, automatically generates BCoutput13 folder\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/3-1BCsort.py alignment13.txt BCoutput13\
+\
+python /Users/masahirookada/Desktop/DAISYprocess/3-1BCsort.py alignmentATGC13.txt BCoutputATGC13\cf0 \
+\
+#Save as 3-1BCsort.py\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf4 import os\
+import shutil\
+from collections import Counter\
+\
+def main(input_file, output_folder):\
+\
+    if not os.path.exists(output_folder):\
+        os.makedirs(output_folder)\
+\
+\
+    with open(input_file, 'r') as f:\
+        lines = f.readlines()\
+\
+    header = lines[0].strip().split(',')\
+    data = [line.strip().split(',') for line in lines[1:]]\
+\
+    static_index = header.index('static')\
+\
+    static_count = Counter([line[static_index] for line in data])\
+\
+    sorted_statics = [static for static, _ in static_count.most_common()]\
+\
+    header.append('BCnumber')\
+    for i in range(len(data)):\
+\
+        static = data[i][static_index]\
+        data[i].append(f"BC\{sorted_statics.index(static) + 1\}")\
+\
+\
+    bc1_data = [line for line in data if line[-1] == 'BC1']\
+    bc1_file = os.path.join(output_folder, "BC1.txt")\
+    with open(bc1_file, 'w') as f:\
+\
+        f.write(','.join(header) + '\\n')\
+\
+        for line in bc1_data:\
+            f.write(','.join(line) + '\\n')\
+\
+    bcall_file = os.path.join(output_folder, "BCall.txt")\
+    with open(bcall_file, 'w') as f:\
+\
+        f.write(','.join(header) + '\\n')\
+\
+        for line in data:\
+            f.write(','.join(line) + '\\n')\
+\
+\
+    for i, static in enumerate(sorted_statics, start=1):\
+\
+        static_data = [line for line in data if line[static_index] == static]\
+\
+        output_file = os.path.join(output_folder, f"BC\{i\}.txt")\
+        with open(output_file, 'w') as f:\
+\
+            f.write(','.join(header) + '\\n')\
+\
+            for line in static_data:\
+                f.write(','.join(line) + '\\n')\
+\
+if __name__ == "__main__":\
+    import sys\
+    if len(sys.argv) != 3:\
+        print("Usage: python BCsort.py input_file output_folder")\
+        sys.exit(1)\
+\
+    input_file = sys.argv[1]\
+    output_folder = sys.argv[2]\
+    main(input_file, output_folder)\cf0 \
+\
+\
+\
+#Generate tree file by using startle (Cell System 2022). Original nj.py is strange, I modified Neighbor-Joining as below.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/3-2njmodified.py /Users/masahirookada/BCoutput13/BC33.txt --output test33.newick\cf0 \
+\
+#Save as 3-2njmodified.py\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf4 from skbio import DistanceMatrix, TreeNode\
+from skbio.tree import nj\
+\
+import argparse\
+import pandas as pd\
+import numpy as np\
+\
+def parse_arguments():\
+    parser = argparse.ArgumentParser(\
+        description="Runs neighbor joining on a character-state matrix using the Hamming distance."\
+    )\
+\
+    parser.add_argument(\
+        "character_matrix", help="Distance matrix to do NJ on"\
+    )\
+\
+    parser.add_argument(\
+        "--output", help="Output tree.", required=True\
+    )\
+\
+    return parser.parse_args()\
+\
+def hamming_distance(x, y):\
+    return np.sum(x != y)\
+\
+if __name__ == "__main__":\
+    args = parse_arguments()\
+    \
+    character_matrix = pd.read_csv(args.character_matrix, index_col=0)\
+ \
+    character_matrix = character_matrix.iloc[:, 1:]\
+    pairwise_distances = np.zeros((len(character_matrix), len(character_matrix)))\
+    \
+    for i, row in enumerate(character_matrix.iterrows()):\
+        for j, row2 in enumerate(character_matrix.iterrows()):\
+            pairwise_distances[i][j] = hamming_distance(row[1], row2[1])\
+\
+    names = character_matrix.index.tolist()\
+    dm = DistanceMatrix(pairwise_distances, list(map(lambda n: str(n).replace(" ", "_"), names)))\
+\
+    tree = nj(dm)\
+\
+    tree.write(f"\{args.output\}")\cf0 \
+\
+\
+#txt to nexus\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf2 python /Users/masahirookada/Desktop/DAISYprocess/3-3txt2nexus.py /Users/masahirookada/BCoutputATGC13/BC33.txt\cf0 \
+\
+#Save as 3-3txt2nexus.py. Generate BC33.nexus\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf4 from Bio import SeqIO\
+import os\
+\
+def convert_to_nexus(input_file):\
+\
+    output_file = os.path.splitext(input_file)[0] + ".nexus"\
+\
+    data = \{\}\
+    with open(input_file, 'r') as f:\
+        header = f.readline().strip().split(',')\
+        for line in f:\
+            parts = line.strip().split(',')\
+            taxon = parts[0]\
+            sequence = ''.join(parts[2:-1]) \
+            data[taxon] = sequence\
+\
+    with open(output_file, 'w') as f:\
+        f.write("#NEXUS\\n")\
+        f.write("BEGIN DATA;\\n")\
+        f.write("DIMENSIONS NTAX=\{\} NCHAR=\{\};\\n".format(len(data), len(next(iter(data.values())))))\
+        f.write("FORMAT DATATYPE=DNA MISSING=? GAP=-;\\n")\
+        f.write("MATRIX\\n")\
+        for taxon, sequence in data.items():\
+            f.write("\{\} \{\}\\n".format(taxon, sequence))\
+        f.write(";\\n")\
+        f.write("END;\\n")\
+\
+    print("Conversion completed. Output file:", output_file)\
+\
+if __name__ == "__main__":\
+    import sys\
+    if len(sys.argv) != 2:\
+        print("Usage: python convert_to_nexus.py input.txt")\
+        sys.exit(1)\
+    input_file = sys.argv[1]\
+    convert_to_nexus(input_file)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+#Generate tree file by using iqtree2, Maximum Likelihood method\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf6 iqtree2 -s /Users/masahirookada/BCoutputATGC13/BC33.nexus -m TEST\cf2 \
+iqtree2 -s /Users/masahirookada/BCoutputATGC13/BC33.nexus -m MFP -bb 1000 -alrt 1000 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+In the R,\
+tree <- read.tree("/Users/masahirookada/daisyprocessdata/test33.newick")\
+tree <- read.tree("/Users/masahirookada/BCoutputATGC13/BC33.nexus.treefile")\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}
