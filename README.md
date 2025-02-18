@@ -41,7 +41,7 @@ conda activate cassiopeia
 pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
 ```
 ## How to use.
-Please change path of your working folder and files for your NGS output fastq file after downloading my codes.  
+This tutorial is mainly for ver2 code. Please change path of your working folder and files for your NGS output fastq file after downloading my codes.  
 
 Before use, 10x barcode whitelist files are required.  
 For single cell barcode which I used as whilelist in the code, first please make seurat object by using your cellranger output as usual.  
