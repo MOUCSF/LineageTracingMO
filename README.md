@@ -8,7 +8,7 @@ Jones, M.G., Khodaverdian, A., Quinn, J.J. et al. Inference of single-cell phylo
 Uyen Mai, Gillian Chu, Benjamin J. Raphael. et al. Maximum Likelihood Inference of Time-scaled Cell Lineage Trees with Mixed-type Missing Data. BioRxiv (2024). https://doi.org/10.1101/2024.03.05.583638  
 
 
-### 2024/7/9 Upload LineageTracing_MO1
+### 2024/7/9 Upload LineageTracing_MO1 for iqtree2 input
 I used all genome editing including CRISPR mediated mutagenesis as well as indel for generating 120 character (120 bp) matrix.
 
 ### 2025/2/18 Upload LineageTracing_MO2 for cassiopeia input
