@@ -45,7 +45,7 @@ Please change path of your working folder and files for your NGS output fastq fi
 
 Before use, 10x barcode whitelist files are required.  
 For single cell barcode which I used as whilelist in the code, first please make seurat object by using your cellranger output as usual.  
-After removal of low quality cells, dead cells, and doublet cells by your familiar fashion, you can extract 10x barcode and save as yoursample.whitelist.Singlet.txt as follows. My case, I used SampleID as obj@meta.data$SampleID to distinguish sample number.
+After removal of low quality cells, dead cells, and doublet cells by your familiar fashion, you can extract 10x barcode and save as yoursample.whitelist.Singlet.txt as follows. My case, I used SampleID as obj@meta.data$SampleID to distinguish sample number.  
 Please type in **Rstudio** as follows if you use merged seurat object.
 ```
 save_10xbarcode <- function(obj) {
