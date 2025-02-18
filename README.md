@@ -12,7 +12,7 @@ Uyen Mai, Gillian Chu, Benjamin J. Raphael. et al. Maximum Likelihood Inference 
 I used all genome editing including CRISPR mediated mutagenesis as well as indel for generating 120 character (120 bp) matrix.
 
 ### 2025/2/18 Upload LineageTracing_MO2 for cassiopeia input
-I used only Indel information for cassiopeia analysis for generating 4 character (CRISPR target 30 bp is 1 character after CIGAR analysis) x copy numnber. 
+I used only Indel information for cassiopeia analysis for generating 4 character (CRISPR target 30 bp is 1 character after CIGAR analysis) x copy number. 
 
 ## Required envinronment.  
 Could you set conda environment as follows before use, please? I am not familiar with dependency.
@@ -62,8 +62,7 @@ If you have single sample, please type in Rstudio as follows.
 save_10xbarcode <- function(sample_name){
   obj <- get(sample_name, envir = .GlobalEnv)  # sample_nameに対応するオブジェクトを取得
   tenxbarcode_with1 <- colnames(obj)
-  # "-1" を削除
-  tenxbarcode <- sub("-1$", "", tenxbarcode_with1)
+  tenxbarcode <- sub("-1$", "", tenxbarcode_with1) # "-1" を削除
   write.table(tenxbarcode, file=paste0(sample_name, ".whitelist.Singlet.txt"), quote=FALSE, row.names=FALSE, col.names=FALSE)
 }
 
