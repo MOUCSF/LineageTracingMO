@@ -58,7 +58,7 @@ save_10xbarcode <- function(obj) {
   }
 save_10xbarcode(obj)
 ```
-Please type in **Rstudio** as follows if you have single seurat object.
+Please type in **Rstudio** as follows if you have each single seurat object.
 ```
 save_10xbarcode <- function(sample_name){
   obj <- get(sample_name, envir = .GlobalEnv)  # sample_nameに対応するオブジェクトを取得
@@ -75,7 +75,16 @@ After you set yoursample.whitelist.Singlet.txt in appropriate path, please copy 
 bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step0ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step1ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step2ver3.sh && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step3ver2.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step4.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step7ver3.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step8ver5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step9.py
 ```
 Depending on your sublibrary sequencing file size, it takes one week to complete entire analysis of fastq.gz data. Please be patient.  
-And then, please run Cassiopeia in your cassiopeia environment. I hope you can run successfully.
+And then, please run Cassiopeia in your cassiopeia environment. This step is not set for all samples. Please change sample number one by one in your code.
+```
+python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step11.py
+```
+or
+```
+python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step12.py
+```
+
+We will update them for more user friendly manner. I hope you can run successfully.
 
 
 Sincerely,  
