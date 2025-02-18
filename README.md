@@ -8,18 +8,19 @@ Nicholas W. Hughes, Yuanhao Qu, Jiaqi Zhang. et al. Machine-learning-optimized C
 Uyen Mai, Gillian Chu, Benjamin J. Raphael. et al. Maximum Likelihood Inference of Time-scaled Cell Lineage Trees with Mixed-type Missing Data. BioRxiv (2024). https://doi.org/10.1101/2024.03.05.583638  
 
 ### 2024/7/9 Upload LineageTracing_MO1
-
+I used all genome editing including CRISPR mediated mutagenesis as well as indel for generating 120 character (120 bp) matrix.
 
 ### 2025/2/18 Upload LineageTracing_MO2 for cassiopeia input
-
+I used only Indel information for cassiopeia analysis for generating 4 character (CRISPR target 30 bp is 1 character after CIGAR analysis) x copy numnber. 
 
 ## Required envinronment.  
-Could you set conda environment as follows before use, please?
+Could you set conda environment as follows before use, please? I am not familiar with dependency.
 
 ### For DAISY preprocessing,
 ```
 conda create -n daisy python==3.10.13
 conda activate daisy
+
 conda install -c bioconda fastp
 conda install -c conda-forge rapidfuzz 
 conda install -c conda-forge scikit-bio
@@ -39,7 +40,37 @@ conda activate cassiopeia
 pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
 ```
 ## How to use.
-Please change your path and file for your NGS output fastq file.  
+Please change your path and file for your NGS output fastq file after downloading my codes.  
+After you are in your virtual environment, please copy and paste in your linux command.  
 
 
+For single cell barcode which I used as whilelist in the code, first please make seurat object by using your cellranger output as usual. After removal of low quality cells, dead cells, and doublet cells by your familiar fashion, please type in Rstudio as follows. My case, I used SampleID as obj@meta.data$SampleID to distinguish sample number.
+```
+save_10xbarcode <- function(obj) {
+  SampleIDs <- unique(obj$SampleID) # SampleID の一覧を取得
+  for (SampleID in SampleIDs) {
+    cells <- colnames(obj)[obj$SampleID == SampleID] # 該当するSampleIDのセルバーコードを取得
+    tenxbarcode <- sub("-1$", "", cells) # "-1" を削除
+    tenxbarcode <- gsub(paste0("^", SampleID, "_"), "", tenxbarcode) # "SampleID_" の部分を空白に置き換えて削除
+    write.table(tenxbarcode, file = paste0(SampleID, ".whitelist.singlet.txt"),quote = FALSE, row.names = FALSE, col.names = FALSE)}# ファイルに保存
+  }
+save_10xbarcode(obj)
+```
+If you have single sample, please type in Rstudio as follows.
+```
+save_10xbarcode <- function(sample_name){
+  obj <- get(sample_name, envir = .GlobalEnv)  # sample_nameに対応するオブジェクトを取得
+  tenxbarcode_with1 <- colnames(obj)
+  # "-1" を削除
+  tenxbarcode <- sub("-1$", "", tenxbarcode_with1)
+  write.table(tenxbarcode, file=paste0(sample_name, ".whitelist.Singlet.txt"), quote=FALSE, row.names=FALSE, col.names=FALSE)
+}
 
+sample_name_list <- c("DAISY0","DAISY13","DAISYRETRY")
+lapply(sample_name_list, save_10xbarcode)
+```
+After you set whitelist.Singlet.txt in appropriate path, please copy and paste command as follows in the terminal or linux in your daisy environment.
+```
+bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step0ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step1ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step2ver3.sh && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step3ver2.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step4.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step7ver3.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step8ver5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step9.py
+```
+And then, please run Cassiopeia in your cassiopeia environment.
