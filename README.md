@@ -41,14 +41,12 @@ conda activate cassiopeia
 pip install git+https://github.com/YosefLab/Cassiopeia@master#egg=cassiopeia-lineage
 ```
 ## How to use.
-Please change your path and file for your NGS output fastq file after downloading my codes.  
-After you are in your virtual environment, please copy and paste in your linux command.  
+Please change path of your working folder and files for your NGS output fastq file after downloading my codes.  
 
-
+Before use, 10x barcode whitelist files are required.  
 For single cell barcode which I used as whilelist in the code, first please make seurat object by using your cellranger output as usual.  
-After removal of low quality cells, dead cells, and doublet cells by your familiar fashion, you can extract 10x barcode and save as yoursample.whitelist.Singlet.txt as follows.  
-My case, I used SampleID as obj@meta.data$SampleID to distinguish sample number.
-Please type in Rstudio as follows if you use merged seurat object.
+After removal of low quality cells, dead cells, and doublet cells by your familiar fashion, you can extract 10x barcode and save as yoursample.whitelist.Singlet.txt as follows. My case, I used SampleID as obj@meta.data$SampleID to distinguish sample number.
+Please type in **Rstudio** as follows if you use merged seurat object.
 ```
 save_10xbarcode <- function(obj) {
   SampleIDs <- unique(obj$SampleID) # SampleID の一覧を取得
@@ -60,7 +58,7 @@ save_10xbarcode <- function(obj) {
   }
 save_10xbarcode(obj)
 ```
-Please type in Rstudio as follows if you have single seurat object.
+Please type in **Rstudio** as follows if you have single seurat object.
 ```
 save_10xbarcode <- function(sample_name){
   obj <- get(sample_name, envir = .GlobalEnv)  # sample_nameに対応するオブジェクトを取得
@@ -72,7 +70,7 @@ save_10xbarcode <- function(sample_name){
 sample_name_list <- c("DAISY0","DAISY13","DAISYRETRY") # Your seurat object name.
 lapply(sample_name_list, save_10xbarcode)
 ```
-After you set yoursample.whitelist.Singlet.txt in appropriate path, please copy and paste command as follows in the terminal or linux in your daisy environment.
+After you set yoursample.whitelist.Singlet.txt in appropriate path, please copy and paste command as follows in the **terminal** or **linux** in your daisy environment.
 ```
 bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step0ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step1ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step2ver3.sh && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step3ver2.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step4.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step7ver3.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step8ver5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step9.py
 ```
