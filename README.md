@@ -46,7 +46,7 @@ This tutorial is mainly for ver2 code. Please change path of your working folder
 
 Before use, 10x barcode whitelist files are required.  
 For single cell barcode which I used as whilelist in the code, first please make seurat object by using your cellranger output as usual.  
-After removal of low quality cells, dead cells, and doublet cells by your familiar fashion, you can extract 10x barcode and save as yoursample.whitelist.Singlet.txt as follows. My case, I used SampleID for meta.data name such as obj$SampleID to distinguish sample number.  
+After removal of low quality cells, dead cells, and doublet cells by your familiar fashion, you can extract 10x barcode and save as yoursample.whitelist.Singlet.txt as follows. In my case, I used SampleID for meta.data name such as obj$SampleID to distinguish sample number.  
 Please type in **Rstudio** as follows if you use merged seurat object.
 ```
 save_10xbarcode <- function(obj) {
@@ -71,12 +71,12 @@ save_10xbarcode <- function(sample_name){
 sample_name_list <- c("DAISY0","DAISY13","DAISYRETRY") # Your seurat object name.
 lapply(sample_name_list, save_10xbarcode)
 ```
-After you set yoursample.whitelist.Singlet.txt in appropriate path, please copy and paste command as follows in the **terminal** or **linux** in your daisy environment.
+After you set yoursample.whitelist.Singlet.txt in appropriate path, please copy and paste command as follows in the **terminal** or **linux** in your **daisy** environment.
 ```
 bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step0ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step1ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step2ver3.sh && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step3ver2.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step4.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step7ver3.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step8ver5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step9.py
 ```
 Depending on your sublibrary sequencing file size, it takes one week to complete entire analysis of fastq.gz data. Please be patient.  
-And then, please run Cassiopeia in your cassiopeia environment. This step is not set for all samples. Please change sample number one by one in your code.
+And then, please run Cassiopeia in your **cassiopeia** environment. This step is not set for all samples. Please change sample number one by one in your code.
 ```
 python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step11.py
 ```
