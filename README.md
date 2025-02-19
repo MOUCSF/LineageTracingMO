@@ -1,5 +1,6 @@
 # DAISY Lineage Tracing Analysis
 This is the preprocessing step of amplicon sequence sublibrary for lineage tracing.  
+Our pipeline can analyze staticBC (intBC) and mutableBC from .fastq data to .txt which describes clonal population with mutation information.
 We use CRISPR/Cas12a-based lineage tracing named **DAISY** published in Mol Cell 2022 by Dr. Le Cong lab.  
 We also utilize **Cassiopeia** published in Genome Biol 2020 and **LAML** published in Biorxiv 2024 for analysis.
 Please cite their papers if you use for your works.  
@@ -72,7 +73,7 @@ lapply(sample_name_list, save_10xbarcode)
 ```
 After you set yoursample.whitelist.Singlet.txt in appropriate path, please copy and paste command as follows in the **terminal** or **linux** in your daisy environment.
 ```
-bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step0ver1.sh && \bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step1ver1.sh && \bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step2ver3.sh \&& python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step3ver2.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step4.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step7ver3.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step8ver5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step9.py
+bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step0ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step1ver1.sh && bash /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step2ver3.sh && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step3ver2.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step4.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step7ver3.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step8ver5.py && python /Users/masahirookada/Desktop/Guptadaisy/mo12398/mo12398_step9.py
 ```
 Depending on your sublibrary sequencing file size, it takes one week to complete entire analysis of fastq.gz data. Please be patient.  
 And then, please run Cassiopeia in your cassiopeia environment. This step is not set for all samples. Please change sample number one by one in your code.
@@ -88,4 +89,5 @@ We will update them for more user friendly manner. I hope you can run successful
 
 
 Sincerely,  
-Masahiro Okada
+Masahiro Okada  
+This work is supported by Dr. Diaz and Dr. Gupta.
